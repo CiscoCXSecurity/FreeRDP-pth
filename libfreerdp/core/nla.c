@@ -15,6 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modification for PtH support have been marked:
+ * // PtH Modification
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -924,11 +928,25 @@ void credssp_encode_ts_credentials(rdpCredssp* credssp)
 	wStream* s;
 	int length;
 
+	// PtH Modification
+	// Mod #2 send empty credentials in the TSPasswordCreds structure
+	int DomainLength = credssp->identity.DomainLength;
+	int UserLength = credssp->identity.UserLength;
+	int PasswordLength = credssp->identity.PasswordLength;
+	credssp->identity.DomainLength = 0;
+	credssp->identity.UserLength = 0;
+	credssp->identity.PasswordLength = 0;
+
 	length = ber_sizeof_sequence(credssp_sizeof_ts_credentials(credssp));
 	sspi_SecBufferAlloc(&credssp->ts_credentials, length);
 
 	s = Stream_New(credssp->ts_credentials.pvBuffer, length);
 	credssp_write_ts_credentials(credssp, s);
+
+	// PtH Modification
+	credssp->identity.DomainLength = DomainLength;
+	credssp->identity.UserLength = UserLength;
+	credssp->identity.PasswordLength = PasswordLength;
 
 	Stream_Free(s, FALSE);
 }

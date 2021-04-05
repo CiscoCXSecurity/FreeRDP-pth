@@ -15,6 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modification for PtH support have been marked:
+ * // PtH Modification
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -699,7 +703,12 @@ BOOL nego_send_negotiation_request(rdpNego* nego)
 	{
 		/* RDP_NEG_DATA must be present for TLS and NLA */
 		Stream_Write_UINT8(s, TYPE_RDP_NEG_REQ);
-		Stream_Write_UINT8(s, 0); /* flags, must be set to zero */
+
+		// PtH Modification
+		// Mod #1: flags = 1 => RESTRICTED_ADMIN_MODE_REQUIRED
+		// Stream_Write_UINT8(s, 0); /* flags, must be set to zero */
+		Stream_Write_UINT8(s, 1);
+
 		Stream_Write_UINT16(s, 8); /* RDP_NEG_DATA length (8) */
 		Stream_Write_UINT32(s, nego->requested_protocols); /* requestedProtocols */
 		length += 8;

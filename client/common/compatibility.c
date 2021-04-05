@@ -15,6 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modifications for PtH support have been marked: 
+ * // PtH modification
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -48,7 +52,7 @@ COMMAND_LINE_ARGUMENT_A old_args[] =
 	{ "K", COMMAND_LINE_VALUE_FLAG, NULL, NULL, NULL, -1, NULL, "do not interfere with window manager bindings" },
 	{ "n", COMMAND_LINE_VALUE_REQUIRED, NULL, NULL, NULL, -1, NULL, "hostname" },
 	{ "o", COMMAND_LINE_VALUE_FLAG, NULL, NULL, NULL, -1, NULL, "console audio" },
-	{ "p", COMMAND_LINE_VALUE_REQUIRED, NULL, NULL, NULL, -1, NULL, "password" },
+	{ "p", COMMAND_LINE_VALUE_REQUIRED, NULL, NULL, NULL, -1, NULL, "password hash" }, // PtH modification
 	{ "s", COMMAND_LINE_VALUE_REQUIRED, NULL, NULL, NULL, -1, NULL, "set startup-shell" },
 	{ "t", COMMAND_LINE_VALUE_REQUIRED, NULL, NULL, NULL, -1, NULL, "alternative port number, default is 3389" },
 	{ "u", COMMAND_LINE_VALUE_REQUIRED, NULL, NULL, NULL, -1, NULL, "username" },
@@ -497,6 +501,12 @@ int freerdp_client_parse_old_command_line_arguments(int argc, char** argv, rdpSe
 			fprintf(stderr, "-p ****** -> /p:******\n");
 			/* Hide the value from 'ps'. */
 			FillMemory(arg->Value, strlen(arg->Value), '*');
+
+			// PtH modification
+			if (strlen(settings->Password) != 32) {
+				printf("ERROR: Password field (-p) should be NT password hash (from SAM).  32 uppercase hex chars.  Quitting.\n");
+				exit(1);
+			}
 		}
 		CommandLineSwitchCase(arg, "s")
 		{

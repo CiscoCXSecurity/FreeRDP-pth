@@ -15,6 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Modification for PtH have been marked:
+ * //PtH Modification
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -282,13 +286,44 @@ void ntlm_fetch_ntlm_v2_hash(NTLM_CONTEXT* context, char* hash)
 	SamClose(sam);
 }
 
+// PtH Modification
+// Code taken from: http://stackoverflow.com/questions/16519056/convert-ascii-char-to-hexadecimal-char-in-c
+BYTE*
+hex_decode(BYTE *in, size_t len,BYTE *out)
+{
+        unsigned int i, t, hn, ln;
+
+        for (t = 0,i = 0; i < len; i+=2,++t) {
+
+                hn = in[i] > '9' ? in[i] - 'A' + 10 : in[i] - '0';
+                ln = in[i+1] > '9' ? in[i+1] - 'A' + 10 : in[i+1] - '0';
+
+                out[t] = (hn << 4 ) | ln;
+        }
+
+        return out;
+}
+
 void ntlm_compute_ntlm_v2_hash(NTLM_CONTEXT* context, char* hash)
 {
 	if (context->identity.PasswordLength > 0)
 	{
-		NTOWFv2W((LPWSTR) context->identity.Password, context->identity.PasswordLength * 2,
-				(LPWSTR) context->identity.User, context->identity.UserLength * 2,
-				(LPWSTR) context->identity.Domain, context->identity.DomainLength * 2, (BYTE*) hash);
+		// PtH Modification
+		// Store PasswordHash in "Password" instead of the password
+		//NTOWFv2W((LPWSTR) context->identity.Password, context->identity.PasswordLength * 2,
+		//		(LPWSTR) context->identity.User, context->identity.UserLength * 2,
+		//		(LPWSTR) context->identity.Domain, context->identity.DomainLength * 2, (BYTE*) hash);
+		BYTE samhash_ascii[33];
+		int i;
+		for(i=0;i<32;i++) {
+			samhash_ascii[i] = context->identity.Password[i];
+		}
+		BYTE samhash[16];
+		hex_decode(samhash_ascii,32,samhash);
+		NTOWFv2FromHashW(samhash,
+                        (LPWSTR) context->identity.User, context->identity.UserLength * 2,
+                        (LPWSTR) context->identity.Domain, context->identity.DomainLength * 2,
+                        (BYTE*) hash);
 	}
 	else
 	{
